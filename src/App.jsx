@@ -89,7 +89,7 @@ function App() {
       } catch (err) {
         setUsers([]);
         setTotalCount(0);
-        setError("Somwthing went wrong");
+        setError("Something went wrong !");
       } finally {
         setLoading(false);
       }
@@ -132,8 +132,14 @@ function App() {
   }
 
   function handleNextPage() {
-    if (currentPage < totalCount) {
+    if (currentPage < totalPages) {
       setCurrentPage(prev => prev + 1)
+    }
+  }
+
+  function onEnterClick(e) {
+    if (e.key === "Enter") {
+      handleSearch();
     }
   }
 
@@ -150,6 +156,7 @@ function App() {
               setSearchTerm={setSearchTerm}
               onSearch={handleSearch}
               onClear={handleClear}
+              onKeyDown={onEnterClick}
             />
           </div>
           <div className=" text-white border border-stone-500 rounded-xl mx-4 my-4 px-2 py-4 h-15">
