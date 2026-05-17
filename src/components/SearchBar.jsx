@@ -3,7 +3,7 @@
 //   - search button
 //   - clear button,
 
-function SearchBar({ searchTerm, setSearchTerm, onSearch, onClear }) {
+function SearchBar({ searchTerm, setSearchTerm, onSearch, onClear, onKeyDown }) {
 
     return (
         <div className="flex flex-col items-start justify-center gap-2 mb-2">
@@ -13,6 +13,7 @@ function SearchBar({ searchTerm, setSearchTerm, onSearch, onClear }) {
                 placeholder="Enter a name ..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={onKeyDown}
             />
             <div>
                 <button
