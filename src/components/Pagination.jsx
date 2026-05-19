@@ -1,13 +1,13 @@
 // previous and next buttons
-function Pagination({ onPrevious, onNext, currentPage, totalPages }) {
+function Pagination({ onPrevious, onNext, currentPage, totalPages, disabled }) {
 
     return (
         <div className="flex flex-row justify-center">
-            <div className="flex justify-between w-7xl gap-2 my-4 py-3 border border-stone-500 bg-stone-800 rounded-xl">
+            <div className="flex justify-between w-7xl gap-2 my-4 py-3 border border-stone-500 bg-stone-950 rounded-xl">
                 <button
                     className="text-stone-900 bg-stone-300 cursor-pointer px-4 py-1 rounded-xl ml-3"
                     onClick={onPrevious}
-                    disabled={currentPage === 1}
+                    disabled={disabled || currentPage === 1}
                 >
                     Prev
                 </button>
@@ -15,7 +15,7 @@ function Pagination({ onPrevious, onNext, currentPage, totalPages }) {
                 <button
                     className="text-stone-900 bg-stone-300 cursor-pointer px-4 py-1 rounded-xl mr-3"
                     onClick={onNext}
-                    disabled={currentPage === totalPages}
+                    disabled={disabled || currentPage === totalPages}
                 >
                     Next
                 </button>

@@ -3,7 +3,7 @@
 //   - search button
 //   - clear button,
 
-function SearchBar({ searchTerm, setSearchTerm, onSearch, onClear, onKeyDown }) {
+function SearchBar({ searchTerm, setSearchTerm, onSearch, onClear, onKeyDown, disabled }) {
 
     return (
         <div className="flex flex-col items-start justify-center gap-2 mb-2">
@@ -14,17 +14,20 @@ function SearchBar({ searchTerm, setSearchTerm, onSearch, onClear, onKeyDown }) 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={onKeyDown}
+                disabled={disabled}
             />
             <div>
                 <button
                     className="bg-lime-600 h-13 w-23 text-white mt-2 mr-2 border border-lime-500 rounded-4xl shadow-lg shadow-lime-600 transition-all duration-200 ease-out hover:translate-y-1"
                     onClick={onSearch}
+                    disabled={disabled}
                 >
                     Search
                 </button>
                 <button
                     className="bg-amber-600 h-13 w-20 text-white border border-amber-500 shadow-lg shadow-amber-600 rounded-4xl transition-all duration-200 ease-out hover:translate-y-1"
                     onClick={onClear}
+                    disabled={disabled}
                 >
                     Clear
                 </button>
