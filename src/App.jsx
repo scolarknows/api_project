@@ -76,7 +76,6 @@ function App() {
         }
 
         const data = await response.json();
-        console.log(data);
 
         setUsers(data.items || []);
         setTotalCount(data.total_count || 0);
@@ -146,6 +145,7 @@ function App() {
   return (
     <div className="bg-stone-900 flex flex-col min-h-screen">
       <div className="flex flex-row justify-center mt-10">
+
         <div className="flex flex-col max-w-7xl center bg-stone-950 mb-10 rounded-xl border border-stone-500 shadow-xl shadow-stone-800">
           <h1 className="text-lime-400 text-center text-6xl mt-8 mb-1 font-sans font-bold text-shadow-lg/10">GitHub User Explorer</h1>
           <p className="text-lime-200 text-3xl font-sans font-semibold text-start pl-4">Search GitHub users, browse matching profiles, and move through the results with a clean interview-ready interface.</p>
@@ -157,33 +157,35 @@ function App() {
               onSearch={handleSearch}
               onClear={handleClear}
               onKeyDown={onEnterClick}
+              disabled={loading}
             />
           </div>
+
           <div className=" text-white border border-stone-500 rounded-xl mx-4 my-4 px-2 py-4 h-15">
             {loading && <p>Loading ...</p>}
             {!loading && error && <p>{error}</p>}
             {!loading && !error && message && <p>{message}</p>}
+            {!loading && !error && !message && totalCount > 0 && (
+              <p>Showing {totalCount.toLocaleString()} results for <span className="font-bold text-lime-400">" {submittedSearch} "</span></p>
+            )}
           </div>
 
         </div>
       </div>
 
+      {!loading && !error && users.length > 0 && (
+        <div className="flex flex-col justify-center items-center">
+          <UserList users={users} />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPrevious={handlePrevPage}
+            onNext={handleNextPage}
+            disabled={loading}
+          />
+        </div>
+      )}
 
-
-
-      <div>
-        {!loading && !error && users.length > 0 && (
-          <>
-            <UserList users={users} />
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPrevious={handlePrevPage}
-              onNext={handleNextPage}
-            />
-          </>
-        )}
-      </div>
 
     </div>
   )
