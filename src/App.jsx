@@ -143,10 +143,10 @@ function App() {
   }
 
   return (
-    <div className="bg-stone-900 flex flex-col min-h-screen">
+    <div className="bg-[#202940] flex flex-col min-h-screen">
       <div className="flex flex-row justify-center mt-10">
 
-        <div className="flex flex-col max-w-7xl center bg-stone-950 mb-10 rounded-xl border border-stone-500 shadow-xl shadow-stone-800">
+        <div className="flex flex-col max-w-7xl center bg-[#1F6F5F] mb-10 rounded-xl border border-stone-500 shadow-xl shadow-stone-800">
           <h1 className="text-lime-400 text-center text-6xl mt-8 mb-1 font-sans font-bold text-shadow-lg/10">GitHub User Explorer</h1>
           <p className="text-lime-200 text-3xl font-sans font-semibold text-start pl-4">Search GitHub users, browse matching profiles, and move through the results with a clean interview-ready interface.</p>
 
@@ -162,7 +162,14 @@ function App() {
           </div>
 
           <div className=" text-white border border-stone-500 rounded-xl mx-4 my-4 px-2 py-4 h-15">
-            {loading && <p>Loading ...</p>}
+
+            {loading && <div className="flex items-center gap-2">
+              <span
+                className="inline-block w-4 h-4 animate-spin rounded-full border-3 border-stone-600 border-t-lime-400 border-accent-soft border-t-accent"
+                aria-hidden="true"
+              />
+              <p>Loading GitHub Users...</p>
+            </div>}
             {!loading && error && <p>{error}</p>}
             {!loading && !error && message && <p>{message}</p>}
             {!loading && !error && !message && totalCount > 0 && (
