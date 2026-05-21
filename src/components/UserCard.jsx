@@ -1,9 +1,9 @@
 // shows avatar, profile, github link
 function UserCard({ user }) {
     return (
-        <div className=" flex flex-col items-start h-85 w-full bg-[#EEEEEE] border border-stone-200 rounded-3xl hover:shadow-lg transition ease-out duration-200 shadow-stone-400">
+        <div className=" flex flex-col items-start min-h-80 sm:h-85 w-full bg-[#EEEEEE] border border-stone-200 rounded-3xl hover:shadow-lg transition ease-out duration-200 shadow-stone-400">
             <img
-                className="rounded-3xl h-62 w-full object-cover block mx-auto my-3 px-4 py-2"
+                className="rounded-3xl h-56 sm:h-62 w-full object-cover block mx-auto my-3 px-4 py-2"
                 src={user.avatar_url}
                 alt={`${user.login}'s avatar`}
             />

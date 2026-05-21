@@ -143,12 +143,12 @@ function App() {
   }
 
   return (
-    <div className="bg-[#202940] flex flex-col min-h-screen">
-      <div className="flex flex-row justify-center mt-10">
+    <div className="bg-[#202940] flex flex-col min-h-screen px-3 sm:px-6">
+      <div className="flex flex-row justify-center mt-4 sm:mt-8 lg:mt-10">
 
-        <div className="flex flex-col max-w-7xl center bg-[#1F6F5F] mb-10 rounded-xl border border-stone-500 shadow-xl shadow-stone-800">
-          <h1 className="text-lime-400 text-center text-6xl mt-8 mb-1 font-sans font-bold text-shadow-lg/10">GitHub User Explorer</h1>
-          <p className="text-lime-200 text-3xl font-sans font-semibold text-start pl-4">Search GitHub users, browse matching profiles, and move through the results with a clean interview-ready interface.</p>
+        <div className="flex flex-col w-full max-w-7xl bg-[#1F6F5F] mb-6 sm:mb-10 rounded-xl border border-stone-500 shadow-xl shadow-stone-800">
+          <h1 className="text-lime-400 text-center text-3xl sm:text-4xl lg:text-6xl mt-6 sm:mt-8 mb-2 font-sans font-bold text-shadow-lg/10 px-3">GitHub User Explorer</h1>
+          <p className="text-lime-200 text-base sm:text-xl lg:text-3xl text-center sm:text-start font-sans font-semibold px-4">Search GitHub users, browse matching profiles, and move through the results with a clean interview-ready interface.</p>
 
           <div className="mt-8 px-4">
             <SearchBar
@@ -161,7 +161,7 @@ function App() {
             />
           </div>
 
-          <div className=" text-white border border-stone-500 rounded-xl mx-4 my-4 px-2 py-4 h-15">
+          <div className=" text-white border border-stone-300 rounded-xl m-4 px-3 py-4 min-h-15 text:sm sm:text-base">
 
             {loading && <div className="flex items-center gap-2">
               <span

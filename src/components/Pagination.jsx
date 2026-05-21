@@ -5,7 +5,7 @@ function Pagination({ onPrevious, onNext, currentPage, totalPages, disabled }) {
 
     return (
         <div className="flex flex-row justify-center">
-            <div className="flex justify-between w-7xl gap-2 my-4 py-3 px-2 border border-stone-500 bg-[#1F6F5F] rounded-xl">
+            <div className="flex justify-between items-center max-w-7xl gap-2 my-4 py-3 px-2 border border-stone-500 bg-[#1F6F5F] rounded-xl">
                 <button
                     className={Pagination_button}
                     onClick={onPrevious}
@@ -13,7 +13,7 @@ function Pagination({ onPrevious, onNext, currentPage, totalPages, disabled }) {
                 >
                     Prev
                 </button>
-                <p className="text-white font-semibold py-1">{`Page ${currentPage} of ${totalPages}`}</p>
+                <p className="text-white font-semibold py-1 px-4 text-sm sm:text-base">{`Page ${currentPage} of ${totalPages}`}</p>
                 <button
                     className={Pagination_button}
                     onClick={onNext}
