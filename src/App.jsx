@@ -69,6 +69,7 @@ function App() {
   const shouldSkipInitialFetch = useRef(
     Boolean(savedState.submittedSearch && savedState.users?.length)
   )
+  const hasUserInteracted = useRef(false)
 
   useEffect(() => {
     const stateToSave = {
@@ -86,8 +87,7 @@ function App() {
   useEffect(() => {
     if (!submittedSearch) return;
 
-    if (shouldSkipInitialFetch.current) {
-      shouldSkipInitialFetch = false;
+    if (shouldSkipInitialFetch.current && !hasUserInteracted.current) {
       return;
     }
 
@@ -116,8 +116,6 @@ function App() {
           setMessage("No Users found.");
         }
       } catch (err) {
-        setUsers([]);
-        setTotalCount(0);
         setError("Something went wrong !");
       } finally {
         setLoading(false);
@@ -129,6 +127,8 @@ function App() {
 
 
   function handleSearch() {
+    hasUserInteracted.current = true;
+
     const trimmedSearch = searchTerm.trim();
 
     if (!trimmedSearch) {
@@ -157,12 +157,16 @@ function App() {
   }
 
   function handlePrevPage() {
+    hasUserInteracted.current = true;
+
     if (currentPage > 1) {
       setCurrentPage(prev => prev - 1)
     }
   }
 
   function handleNextPage() {
+    hasUserInteracted.current = true;
+
     if (currentPage < totalPages) {
       setCurrentPage(prev => prev + 1)
     }
