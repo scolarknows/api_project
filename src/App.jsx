@@ -1,9 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Pagination from "./components/Pagination";
 import SearchBar from "./components/SearchBar";
 import UserList from "./components/UserList";
 
 const PER_PAGE = 12;
+const STORAGE_KEY = "github-user-explorer-state";
+function getSavedState() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+
+const savedState = getSavedState();
 
 // what information changes over time-
 // searchTerm
@@ -38,28 +49,47 @@ function App() {
 
 
   // searchTerm
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState(savedState.searchTerm || "")
   // committedSearch
-  const [submittedSearch, setSubmittedSearch] = useState("")
+  const [submittedSearch, setSubmittedSearch] = useState(savedState.submittedSearch || "")
   // users
-  const [users, setUsers] = useState([])
+  const [users, setUsers] = useState(savedState.users || [])
   // loading
   const [loading, setLoading] = useState(false)
   // error
   const [error, setError] = useState("")
   // message
-  const [message, setMessage] = useState("Search for Github users to get started.")
+  const [message, setMessage] = useState(savedState.message || "Search for Github users to get started.")
   // currentPage
-  const [currentPage, setCurrentPage] = useState(1)
+  const [currentPage, setCurrentPage] = useState(savedState.currentPage || 1)
   // totalCount
-  const [totalCount, setTotalCount] = useState(0)
+  const [totalCount, setTotalCount] = useState(savedState.totalCount || 0)
 
   const totalPages = Math.ceil(totalCount / PER_PAGE)
+  const shouldSkipInitialFetch = useRef(
+    Boolean(savedState.submittedSearch && savedState.users?.length)
+  )
 
+  useEffect(() => {
+    const stateToSave = {
+      searchTerm,
+      submittedSearch,
+      users,
+      currentPage,
+      totalCount,
+      message,
+    };
 
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+  }, [searchTerm, submittedSearch, users, currentPage, totalCount, message]);
 
   useEffect(() => {
     if (!submittedSearch) return;
+
+    if (shouldSkipInitialFetch.current) {
+      shouldSkipInitialFetch = false;
+      return;
+    }
 
     const fetchUSers = async () => {
       setLoading(true);
@@ -115,6 +145,8 @@ function App() {
   }
 
   function handleClear() {
+    localStorage.removeItem(STORAGE_KEY);
+
     setSearchTerm("");
     setSubmittedSearch("");
     setUsers([]);
@@ -161,7 +193,7 @@ function App() {
             />
           </div>
 
-          <div className=" text-white border border-stone-300 rounded-xl m-4 px-3 py-4 min-h-15 text:sm sm:text-base">
+          <div className=" text-white border border-stone-300 rounded-xl m-4 px-3 py-4 min-h-15 text-sm sm:text-base">
 
             {loading && <div className="flex items-center gap-2">
               <span
