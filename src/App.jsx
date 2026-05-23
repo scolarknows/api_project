@@ -1,10 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Pagination from "./components/Pagination";
 import SearchBar from "./components/SearchBar";
 import UserList from "./components/UserList";
 
 const PER_PAGE = 12;
 const STORAGE_KEY = "github-user-explorer-state";
+const INITIAL_MESSAGE = "Search for Github users to get started.";
+
 function getSavedState() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
@@ -13,63 +15,26 @@ function getSavedState() {
   }
 }
 
+function AppCleaner() {
+  const savedState = getSavedState();
+  const hasCachedResults = Boolean(
+    savedState.submittedSearch && savedState.users?.length
+  );
 
-const savedState = getSavedState();
+  const [searchTerm, setSearchTerm] = useState(savedState.searchTerm || "");
+  const [submittedSearch, setSubmittedSearch] = useState(
+    savedState.submittedSearch || ""
+  );
+  const [users, setUsers] = useState(savedState.users || []);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState(savedState.message || INITIAL_MESSAGE);
+  const [currentPage, setCurrentPage] = useState(savedState.currentPage || 1);
+  const [totalCount, setTotalCount] = useState(savedState.totalCount || 0);
 
-// what information changes over time-
-// searchTerm
-// committedSearch
-// users
-// loading
-// error
-// message
-// currentPage
-// totalCount
-
-
-// the App.jsx handles -
-// - owns all state
-//   - handles fetch logic
-//   - handles debounce
-//   - handles page changes
-
-// simple rule-
-// App.jsx = logic
-// other components = presentation
-
-// the app should control user actions that are -
-// type into input
-// search for user 
-// clear the input
-// go to next page
-// go to previous page
-
-function App() {
-
-
-
-  // searchTerm
-  const [searchTerm, setSearchTerm] = useState(savedState.searchTerm || "")
-  // committedSearch
-  const [submittedSearch, setSubmittedSearch] = useState(savedState.submittedSearch || "")
-  // users
-  const [users, setUsers] = useState(savedState.users || [])
-  // loading
-  const [loading, setLoading] = useState(false)
-  // error
-  const [error, setError] = useState("")
-  // message
-  const [message, setMessage] = useState(savedState.message || "Search for Github users to get started.")
-  // currentPage
-  const [currentPage, setCurrentPage] = useState(savedState.currentPage || 1)
-  // totalCount
-  const [totalCount, setTotalCount] = useState(savedState.totalCount || 0)
-
-  const totalPages = Math.ceil(totalCount / PER_PAGE)
-  const shouldSkipInitialFetch = useRef(
-    Boolean(savedState.submittedSearch && savedState.users?.length)
-  )
-  const hasUserInteracted = useRef(false)
+  const totalPages = Math.ceil(totalCount / PER_PAGE);
+  const isShowingCachedResults = useRef(hasCachedResults);
+  const hasUserRequestedFetch = useRef(false);
 
   useEffect(() => {
     const stateToSave = {
@@ -87,65 +52,69 @@ function App() {
   useEffect(() => {
     if (!submittedSearch) return;
 
-    if (shouldSkipInitialFetch.current && !hasUserInteracted.current) {
+    if (isShowingCachedResults.current && !hasUserRequestedFetch.current) {
       return;
     }
 
-    const fetchUSers = async () => {
+    async function fetchUsers() {
       setLoading(true);
       setError("");
       setMessage("");
 
       try {
+        const query = encodeURIComponent(submittedSearch);
         const response = await fetch(
-          `https://api.github.com/search/users?q=${submittedSearch}&page=${currentPage}&per_page=${PER_PAGE}`
+          `https://api.github.com/search/users?q=${query}&page=${currentPage}&per_page=${PER_PAGE}`
         );
 
+        if (response.status === 403) {
+          throw new Error("GitHub rate limit reached. Please try again later.");
+        }
+
         if (!response.ok) {
-          throw new Error("Something went wrong");
+          throw new Error("Something went wrong.");
         }
 
         const data = await response.json();
+        const nextUsers = data.items || [];
 
-        setUsers(data.items || []);
+        setUsers(nextUsers);
         setTotalCount(data.total_count || 0);
-
-
-
-        if (!data.items || data.items.length === 0) {
-          setMessage("No Users found.");
-        }
+        setMessage(nextUsers.length === 0 ? "No users found." : "");
       } catch (err) {
-        setError("Something went wrong !");
+        setError(err.message || "Something went wrong.");
       } finally {
         setLoading(false);
       }
     }
-    fetchUSers();
-  }, [submittedSearch, currentPage])
 
-
+    fetchUsers();
+  }, [submittedSearch, currentPage]);
 
   function handleSearch() {
-    hasUserInteracted.current = true;
+    hasUserRequestedFetch.current = true;
+    isShowingCachedResults.current = false;
 
     const trimmedSearch = searchTerm.trim();
 
     if (!trimmedSearch) {
       setUsers([]);
-      setSubmittedSearch("")
-      setCurrentPage(1)
-      setTotalCount(0)
+      setSubmittedSearch("");
+      setCurrentPage(1);
+      setTotalCount(0);
       setError("");
-      setMessage("Please enter a search term.")
+      setMessage("Please enter a search term.");
       return;
     }
-    setSubmittedSearch(trimmedSearch)
-    setCurrentPage(1)
+
+    setSubmittedSearch(trimmedSearch);
+    setCurrentPage(1);
   }
 
   function handleClear() {
     localStorage.removeItem(STORAGE_KEY);
+    hasUserRequestedFetch.current = false;
+    isShowingCachedResults.current = false;
 
     setSearchTerm("");
     setSubmittedSearch("");
@@ -153,38 +122,43 @@ function App() {
     setCurrentPage(1);
     setTotalCount(0);
     setError("");
-    setMessage("Search for Github users to get started.");
+    setMessage(INITIAL_MESSAGE);
   }
 
   function handlePrevPage() {
-    hasUserInteracted.current = true;
+    if (currentPage <= 1) return;
 
-    if (currentPage > 1) {
-      setCurrentPage(prev => prev - 1)
-    }
+    hasUserRequestedFetch.current = true;
+    isShowingCachedResults.current = false;
+    setCurrentPage((page) => page - 1);
   }
 
   function handleNextPage() {
-    hasUserInteracted.current = true;
+    if (currentPage >= totalPages) return;
 
-    if (currentPage < totalPages) {
-      setCurrentPage(prev => prev + 1)
-    }
+    hasUserRequestedFetch.current = true;
+    isShowingCachedResults.current = false;
+    setCurrentPage((page) => page + 1);
   }
 
-  function onEnterClick(e) {
+  function handleSearchKeyDown(e) {
     if (e.key === "Enter") {
       handleSearch();
     }
   }
 
   return (
-    <div className="bg-[#202940] flex flex-col min-h-screen px-3 sm:px-6">
-      <div className="flex flex-row justify-center mt-4 sm:mt-8 lg:mt-10">
+    <div className="flex min-h-screen flex-col bg-[#202940] px-3 sm:px-6">
+      <div className="mt-4 flex justify-center sm:mt-8 lg:mt-10">
+        <div className="mb-6 flex w-full max-w-7xl flex-col rounded-xl border border-stone-500 bg-[#1F6F5F] shadow-xl shadow-stone-800 sm:mb-10">
+          <h1 className="mt-6 mb-2 px-3 text-center font-sans text-3xl font-bold text-lime-400 text-shadow-lg/10 sm:mt-8 sm:text-4xl lg:text-6xl">
+            GitHub User Explorer
+          </h1>
 
-        <div className="flex flex-col w-full max-w-7xl bg-[#1F6F5F] mb-6 sm:mb-10 rounded-xl border border-stone-500 shadow-xl shadow-stone-800">
-          <h1 className="text-lime-400 text-center text-3xl sm:text-4xl lg:text-6xl mt-6 sm:mt-8 mb-2 font-sans font-bold text-shadow-lg/10 px-3">GitHub User Explorer</h1>
-          <p className="text-lime-200 text-base sm:text-xl lg:text-3xl text-center sm:text-start font-sans font-semibold px-4">Search GitHub users, browse matching profiles, and move through the results with a clean interview-ready interface.</p>
+          <p className="px-4 text-center font-sans text-base font-semibold text-lime-200 sm:text-start sm:text-xl lg:text-3xl">
+            Search GitHub users, browse matching profiles, and move through the
+            results with a clean interview-ready interface.
+          </p>
 
           <div className="mt-8 px-4">
             <SearchBar
@@ -192,32 +166,38 @@ function App() {
               setSearchTerm={setSearchTerm}
               onSearch={handleSearch}
               onClear={handleClear}
-              onKeyDown={onEnterClick}
+              onKeyDown={handleSearchKeyDown}
               disabled={loading}
             />
           </div>
 
-          <div className=" text-white border border-stone-300 rounded-xl m-4 px-3 py-4 min-h-15 text-sm sm:text-base">
+          <div className="m-4 min-h-15 rounded-xl border border-stone-300 px-3 py-4 text-sm text-white sm:text-base">
+            {loading && (
+              <div className="flex items-center gap-2">
+                <span
+                  className="inline-block h-4 w-4 animate-spin rounded-full border-3 border-stone-600 border-t-lime-400"
+                  aria-hidden="true"
+                />
+                <p>Loading GitHub users...</p>
+              </div>
+            )}
 
-            {loading && <div className="flex items-center gap-2">
-              <span
-                className="inline-block w-4 h-4 animate-spin rounded-full border-3 border-stone-600 border-t-lime-400 border-accent-soft border-t-accent"
-                aria-hidden="true"
-              />
-              <p>Loading GitHub Users...</p>
-            </div>}
             {!loading && error && <p>{error}</p>}
             {!loading && !error && message && <p>{message}</p>}
             {!loading && !error && !message && totalCount > 0 && (
-              <p>Showing {totalCount.toLocaleString()} results for <span className="font-bold text-lime-400">" {submittedSearch} "</span></p>
+              <p>
+                Showing {totalCount.toLocaleString()} results for{" "}
+                <span className="font-bold text-lime-400">
+                  "{submittedSearch}"
+                </span>
+              </p>
             )}
           </div>
-
         </div>
       </div>
 
       {!loading && !error && users.length > 0 && (
-        <div className="flex flex-col justify-center items-center">
+        <div className="flex flex-col items-center justify-center">
           <UserList users={users} />
           <Pagination
             currentPage={currentPage}
@@ -228,10 +208,9 @@ function App() {
           />
         </div>
       )}
-
-
     </div>
-  )
+  );
 }
 
-export default App;
+export default AppCleaner;
+
