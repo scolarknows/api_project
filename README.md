@@ -7,6 +7,7 @@ The app uses the public GitHub Search API and includes loading, error, empty-sta
 ## Features
 
 - Search GitHub users by username or keyword
+- Optional AI search that translates plain-English requests into GitHub user search queries
 - View user avatars, usernames, and GitHub profile links
 - Navigate results with previous and next pagination
 - Loading spinner while requests are in progress
@@ -23,6 +24,7 @@ The app uses the public GitHub Search API and includes loading, error, empty-sta
 - Tailwind CSS
 - GitHub Search Users API
 - localStorage
+- OpenAI Responses API through a Vercel serverless function (optional)
 
 ## Project Structure
 
@@ -106,3 +108,11 @@ Install Command: npm install
 ## Notes
 
 The app uses GitHub's public API without authentication. This keeps setup simple, but public requests can be rate-limited. If you need higher request limits, add a backend or serverless function and keep any GitHub token out of the browser.
+
+## AI Search Setup
+
+The `api/interpret-search.js` serverless function interprets AI search prompts. It keeps the OpenAI API key on the server and returns a GitHub query with a short explanation.
+
+Deploy to Vercel and add `OPENAI_API_KEY` to the project's server environment variables. Optionally set `OPENAI_MODEL`; the default is `gpt-4.1-mini`. Redeploy after changing environment variables. Regular GitHub search works without AI configuration.
+
+For local development with the serverless function, use Vercel CLI (`vercel dev`) and configure `OPENAI_API_KEY` in the local Vercel environment. `npm run dev` starts only Vite, so `/api/interpret-search` is not available in that mode.

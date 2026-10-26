@@ -7,6 +7,28 @@ const PER_PAGE = 12;
 const STORAGE_KEY = "github-user-explorer-state";
 const INITIAL_MESSAGE = "Search for Github users to get started.";
 
+async function readJsonResponse(response) {
+  const body = await response.text();
+  if (!body) {
+    throw new Error(
+      response.status === 404
+        ? "AI search endpoint was not found. Run the app with `vercel dev` locally or deploy the latest version to Vercel."
+        : `AI search returned an empty response (HTTP ${response.status}). Check that the API server is running.`
+    );
+  }
+
+  try {
+    return JSON.parse(body);
+  } catch {
+    const isHtml = /<html|<!doctype/i.test(body);
+    throw new Error(
+      isHtml
+        ? "AI search endpoint is unavailable. Use `vercel dev` locally or deploy the latest version to Vercel."
+        : `AI search returned an invalid response (HTTP ${response.status}). Please try again.`
+    );
+  }
+}
+
 function getSavedState() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
@@ -31,6 +53,9 @@ function AppCleaner() {
   const [message, setMessage] = useState(savedState.message || INITIAL_MESSAGE);
   const [currentPage, setCurrentPage] = useState(savedState.currentPage || 1);
   const [totalCount, setTotalCount] = useState(savedState.totalCount || 0);
+  const [aiSearch, setAiSearch] = useState(false);
+  const [interpreting, setInterpreting] = useState(false);
+  const [searchExplanation, setSearchExplanation] = useState("");
 
   const totalPages = Math.ceil(totalCount / PER_PAGE);
   const isShowingCachedResults = useRef(hasCachedResults);
@@ -91,7 +116,7 @@ function AppCleaner() {
     fetchUsers();
   }, [submittedSearch, currentPage]);
 
-  function handleSearch() {
+  async function handleSearch() {
     hasUserRequestedFetch.current = true;
     isShowingCachedResults.current = false;
 
@@ -107,7 +132,33 @@ function AppCleaner() {
       return;
     }
 
-    setSubmittedSearch(trimmedSearch);
+    let githubQuery = trimmedSearch;
+    setSearchExplanation("");
+
+    if (aiSearch) {
+      setInterpreting(true);
+      setError("");
+      setMessage("Understanding your search...");
+      try {
+        const response = await fetch("/api/interpret-search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: trimmedSearch }),
+        });
+        const data = await readJsonResponse(response);
+        if (!response.ok) throw new Error(data.error || "Could not interpret this search.");
+        githubQuery = data.query;
+        setSearchExplanation(data.explanation || "");
+      } catch (err) {
+        setError(err.message || "Could not interpret this search.");
+        setMessage("");
+        setInterpreting(false);
+        return;
+      }
+      setInterpreting(false);
+    }
+
+    setSubmittedSearch(githubQuery);
     setCurrentPage(1);
   }
 
@@ -167,24 +218,28 @@ function AppCleaner() {
               onSearch={handleSearch}
               onClear={handleClear}
               onKeyDown={handleSearchKeyDown}
-              disabled={loading}
+              disabled={loading || interpreting}
             />
+            <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-lime-100">
+              <input type="checkbox" checked={aiSearch} onChange={(event) => setAiSearch(event.target.checked)} disabled={loading || interpreting} />
+              <span>AI search: describe the people you want in plain English</span>
+            </label>
           </div>
 
           <div className="m-4 min-h-15 rounded-xl border border-stone-300 px-3 py-4 text-sm text-white sm:text-base">
-            {loading && (
+            {(loading || interpreting) && (
               <div className="flex items-center gap-2">
                 <span
                   className="inline-block h-4 w-4 animate-spin rounded-full border-3 border-stone-600 border-t-lime-400"
                   aria-hidden="true"
                 />
-                <p>Loading GitHub users...</p>
+                <p>{interpreting ? "Understanding your search..." : "Loading GitHub users..."}</p>
               </div>
             )}
 
             {!loading && error && <p>{error}</p>}
             {!loading && !error && message && <p>{message}</p>}
-            {!loading && !error && !message && totalCount > 0 && (
+            {!loading && !interpreting && !error && !message && totalCount > 0 && (
               <p>
                 Showing {totalCount.toLocaleString()} results for{" "}
                 <span className="font-bold text-lime-400">
@@ -192,6 +247,7 @@ function AppCleaner() {
                 </span>
               </p>
             )}
+            {!loading && !interpreting && !error && searchExplanation && <p className="mt-2 text-lime-100">AI interpreted this as: {searchExplanation} <span className="text-white/80">({submittedSearch})</span></p>}
           </div>
         </div>
       </div>
