@@ -31,7 +31,6 @@ The app uses the public GitHub Search API and includes loading, error, empty-sta
 ```txt
 src/
   App.jsx
-  App_Cleaner.jsx
   main.jsx
   index.css
   components/
@@ -39,10 +38,6 @@ src/
     UserList.jsx
     UserCard.jsx
     Pagination.jsx
-    SearchBar_Cleaner.jsx
-    UserList_Cleaner.jsx
-    UserCard_Cleaner.jsx
-    Pagination_Cleaner.jsx
 ```
 
 ## Getting Started

@@ -23,6 +23,3 @@ dist-ssr
 *.sln
 *.sw?
 
-# Local cleaner/reference files
-src/App_Cleaner.jsx
-src/components/*_Cleaner.jsx

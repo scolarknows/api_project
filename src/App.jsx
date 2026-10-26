@@ -37,7 +37,7 @@ function getSavedState() {
   }
 }
 
-function AppCleaner() {
+function App() {
   const savedState = getSavedState();
   const hasCachedResults = Boolean(
     savedState.submittedSearch && savedState.users?.length
@@ -268,5 +268,5 @@ function AppCleaner() {
   );
 }
 
-export default AppCleaner;
+export default App;
 
