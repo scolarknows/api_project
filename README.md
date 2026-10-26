@@ -108,6 +108,6 @@ The app uses GitHub's public API without authentication. This keeps setup simple
 
 The `api/interpret-search.js` serverless function interprets AI search prompts. It keeps the OpenAI API key on the server and returns a GitHub query with a short explanation.
 
-Deploy to Vercel and add `OPENAI_API_KEY` to the project's server environment variables. Optionally set `OPENAI_MODEL`; the default is `gpt-4.1-mini`. Redeploy after changing environment variables. Regular GitHub search works without AI configuration.
+For local development, put `OPENAI_API_KEY` in `.env` (see `.env.example`) and run `npm run dev`; the Vite development server provides the `/api/interpret-search` route. `.env` is ignored by Git. Optionally set `OPENAI_MODEL`; the default is `gpt-4.1-mini`.
 
-For local development with the serverless function, use Vercel CLI (`vercel dev`) and configure `OPENAI_API_KEY` in the local Vercel environment. `npm run dev` starts only Vite, so `/api/interpret-search` is not available in that mode.
+For deployment, add `OPENAI_API_KEY` to the Vercel project's Environment Variables for the environments you use, then redeploy. Local `.env` values are not uploaded automatically. Regular GitHub search works without AI configuration.
